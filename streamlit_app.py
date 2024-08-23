@@ -53,6 +53,8 @@ def processar_arquivo(uploaded_file, nome_loja):
             """
         )
 
+        print("query job done")
+
         df_produtos = pd.DataFrame(
             data=[row.values() for row in query_job],
             columns=[field.name for field in query_job.schema],
@@ -63,6 +65,7 @@ def processar_arquivo(uploaded_file, nome_loja):
         try:
             df_estoque = pd.read_excel(uploaded_file, index_col=3)
             df_lista_full_sku_matriz = gerar_df_lista_full(df_estoque, df_produtos)
+            print("gerar_df_lista_full done")
 
             if len(df_lista_full_sku_matriz[0]) > 0:
                 status_placeholder = st.empty()
@@ -126,5 +129,3 @@ if st.button(
         processar_arquivo(planilha_estoque_vendolandia2, "vendolandia2")
 
     st.rerun()
-
-
