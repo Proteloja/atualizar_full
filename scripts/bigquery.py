@@ -1,7 +1,6 @@
-import os
 from google.cloud import bigquery
 from google.oauth2 import service_account
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 import streamlit as st
 

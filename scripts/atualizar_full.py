@@ -1,8 +1,7 @@
 import json
 import pandas as pd
 import re
-from scripts.bigquery import query_bigquery
-from scripts.requisicoes_bling import api_bling
+
 
 
 def atualizar_lista_estoque_full(sku_to_check, inventory, qtd, id):

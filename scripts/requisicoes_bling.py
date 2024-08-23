@@ -3,7 +3,6 @@ import pandas as pd
 import requests
 from time import sleep
 import json
-import os
 import base64
 from google.cloud import bigquery
 from scripts.bigquery import query_bigquery, send_bigquery
