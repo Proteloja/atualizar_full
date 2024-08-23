@@ -46,6 +46,7 @@ def processar_arquivo(uploaded_file, nome_loja):
             "vendolandia": {"deposito": int(14197230585), "nome": "Vendolandia"},
             "vendolandia2": {"deposito": int(14886665514), "nome": "Vendolandia2"},
         }
+        print("inicio processo")
 
         query_job = query_bigquery(
             """
