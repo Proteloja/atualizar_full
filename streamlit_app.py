@@ -2,10 +2,14 @@ import hmac
 import streamlit as st
 from stqdm import stqdm
 import pandas as pd
+import logging
 
 from scripts.atualizar_full import gerar_df_lista_full
 from scripts.bigquery import query_bigquery
 from scripts.requisicoes_bling import api_bling
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 st.header("Atualize Estoque Full do Bling 🚛", divider="orange")
 
@@ -46,7 +50,7 @@ def processar_arquivo(uploaded_file, nome_loja):
             "vendolandia": {"deposito": int(14197230585), "nome": "Vendolandia"},
             "vendolandia2": {"deposito": int(14886665514), "nome": "Vendolandia2"},
         }
-        print("inicio processo")
+        logger.debug("inicio processo")
 
         query_job = query_bigquery(
             """
@@ -54,7 +58,7 @@ def processar_arquivo(uploaded_file, nome_loja):
             """
         )
 
-        print("query job done")
+        logger.debug("query job done")
 
         df_produtos = pd.DataFrame(
             data=[row.values() for row in query_job],
@@ -66,7 +70,7 @@ def processar_arquivo(uploaded_file, nome_loja):
         try:
             df_estoque = pd.read_excel(uploaded_file, index_col=3)
             df_lista_full_sku_matriz = gerar_df_lista_full(df_estoque, df_produtos)
-            print("gerar_df_lista_full done")
+            logger.debug("gerar_df_lista_full done")
 
             if len(df_lista_full_sku_matriz[0]) > 0:
                 status_placeholder = st.empty()
@@ -94,7 +98,7 @@ def processar_arquivo(uploaded_file, nome_loja):
 
                 status_placeholder.text("")
         except AttributeError as e:
-            print(e)
+            logger.error(e)
 
 
 # Título do aplicativo
