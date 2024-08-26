@@ -30,7 +30,7 @@ def check_password():
         "Password", type="password", on_change=password_entered, key="password"
     )
     if "password_correct" in st.session_state:
-        st.error("😕 Password incorrect")
+        st.error("😕 Senha incorreta")
     return False
 
 
