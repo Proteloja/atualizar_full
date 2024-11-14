@@ -104,6 +104,7 @@ class api_bling:
                 "Accept": "application/json",
                 "Authorization": f"Bearer {acess_token}",
             }
+
             payload = json.dumps(body)
             response = requests.post(url, headers=headers, data=payload)
 
@@ -256,7 +257,7 @@ def atualizar_lista_estoque_full(sku_to_check, inventory, qtd, id):
     return inventory
 
 
-def gerar_df_lista_full(planilha: pd.DataFrame, df_produtos: pd.DataFrame):
+def gerar_df_lista_full(planilha: pd.DataFrame, df_produtos: pd.DataFrame, loja: str):
     lista_estoque_full = []
     try:
         df_planilha_full = planilha
@@ -271,7 +272,9 @@ def gerar_df_lista_full(planilha: pd.DataFrame, df_produtos: pd.DataFrame):
         for sku, qtd in data_dict.items():
             if sku in df_produtos["sku"].values:
                 estrutura = (
-                    df_produtos["estrutura"].loc[df_produtos["sku"] == sku].values[0]
+                    df_produtos["estrutura"]
+                    .loc[(df_produtos["sku"] == sku) & (df_produtos["loja"] == loja)]
+                    .values[0]
                 )
                 estrutura = re.sub(
                     r"(\w+):", r'"\1":', estrutura
@@ -303,7 +306,11 @@ def gerar_df_lista_full(planilha: pd.DataFrame, df_produtos: pd.DataFrame):
                         sku,
                         lista_estoque_full,
                         qtd,
-                        df_produtos["id"].loc[df_produtos["sku"] == sku].values[0],
+                        df_produtos["id"]
+                        .loc[
+                            (df_produtos["sku"] == sku) & (df_produtos["loja"] == loja)
+                        ]
+                        .values[0],
                     )
 
         return lista_estoque_full
@@ -318,19 +325,21 @@ def gerar_df_lista_full(planilha: pd.DataFrame, df_produtos: pd.DataFrame):
 # Id e nome dos depósitos
 deposito_full = {
     "proteloja": {"deposito": int(9738790725), "nome": "Proteloja"},
-    "vendolandia": {"deposito": int(14197230585), "nome": "Vendolandia"},
-    "vendolandia2": {"deposito": int(14886665514), "nome": "Vendolandia2"},
+    "vendolandia": {"deposito": int(14888059908), "nome": "Vendolandia"},
+    "vendolandia2": {"deposito": int(14888059909), "nome": "Vendolandia2"},
 }
 
 
 # Função para atualizar full
 def processar_arquivo(uploaded_file, nome_loja):
     with st.spinner(f"Processando arquivo do full {nome_loja}..."):
+        loja_post = "proteloja" if nome_loja == "proteloja" else "vendolandia"
+
         logger.debug("inicio processo")
 
         query_job = query_bigquery(
             """
-            SELECT * FROM `integracao-414415.data_ptl.produtos_bling_proteloja`
+                SELECT * FROM `integracao-414415.data_ptl.produtos_bling_proteloja`
             """
         )
 
@@ -345,7 +354,9 @@ def processar_arquivo(uploaded_file, nome_loja):
 
         try:
             df_estoque = pd.read_excel(uploaded_file, index_col=3)
-            df_lista_full_sku_matriz = gerar_df_lista_full(df_estoque, df_produtos)
+            df_lista_full_sku_matriz = gerar_df_lista_full(
+                df_estoque, df_produtos, loja_post
+            )
             logger.debug("gerar_df_lista_full done")
 
             if len(df_lista_full_sku_matriz[0]) > 0:
@@ -365,7 +376,7 @@ def processar_arquivo(uploaded_file, nome_loja):
                         api.post(
                             "https://www.bling.com.br/Api/v3/estoques",
                             body,
-                            "proteloja",
+                            loja_post,
                         )
 
                         status_placeholder.text(
